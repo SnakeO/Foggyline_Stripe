@@ -1,0 +1,9 @@
+{
+    "name": "snakeo/foggyline_stripe",
+    "type": "magento-module",
+    "description": "Stripe Payments",
+    "homepage": "http://unknown/",
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
