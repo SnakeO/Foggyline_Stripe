@@ -40,7 +40,7 @@ class Foggyline_Stripe_Model_Payment extends Mage_Payment_Model_Method_Cc
             ));
         } catch (Exception $e) {
             $this->debugData($e->getMessage());
-            Mage::throwException(Mage::helper('foggyline_sprite')->__('Payment capturing error.'));
+            Mage::throwException(Mage::helper('foggyline_stripe')->__('Payment capturing error.'));
         }
 
         $payment->setTransactionId($charge->id)
