@@ -1,27 +1,25 @@
 <?php
+require_once(dirname(__FILE__) .'/../lib/stripe-php-master/init.php');
 
-require_once dirname(__FILE__).'/../lib/Stripe.php';
-
-class Foggyline_Stripe_Model_Payment extends Mage_Payment_Model_Method_Cc 
+class Foggyline_Stripe_Model_Payment extends Mage_Payment_Model_Method_Cc
 {
     protected $_code = 'foggyline_stripe';
     protected $_isGateway = true;
     protected $_canCapture = true;
-    protected $_supportedCurrencyCodes = array('USD');
+    protected $_supportedCurrencyCodes = array('USD', 'EUR');
     protected $_minOrderTotal = 0.5;
 
-    public function __construct() 
+    public function __construct()
     {
-        Stripe::setApiKey($this->getConfigData('api_key'));
+        Stripe\Stripe::setApiKey($this->getConfigData('api_key'));
     }
 
-    public function capture(Varien_Object $payment, $amount) 
+    public function capture(Varien_Object $payment, $amount)
     {
         $order = $payment->getOrder();
         $billingAddress = $order->getBillingAddress();
-
         try {
-            $charge = Stripe_Charge::create(array(
+            $charge = Stripe\Charge::create(array(
                 'amount' => $amount * 100,
                 'currency' => strtolower($order->getBaseCurrencyCode()),
                 'card' => array(
@@ -42,28 +40,23 @@ class Foggyline_Stripe_Model_Payment extends Mage_Payment_Model_Method_Cc
             $this->debugData($e->getMessage());
             Mage::throwException(Mage::helper('foggyline_stripe')->__('Payment capturing error.'));
         }
-
-        $payment->setTransactionId($charge->id)
-                ->setIsTransactionClosed(0);
-
+        $payment->setTransactionId($charge->id)->setIsTransactionClosed(0);
         return $this;
     }
-    
-    public function isAvailable($quote = null) 
+
+    public function isAvailable($quote = null)
     {
         if ($quote && $quote->getBaseGrandTotal() < $this->_minOrderTotal) {
             return false;
         }
-        
         return $this->getConfigData('api_key', ($quote ? $quote->getStoreId() : null)) && parent::isAvailable($quote);
     }
 
-    public function canUseForCurrency($currencyCode) 
+    public function canUseForCurrency($currencyCode)
     {
         if (!in_array($currencyCode, $this->_supportedCurrencyCodes)) {
             return false;
         }
-        
         return true;
     }
 }
